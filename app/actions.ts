@@ -41,8 +41,9 @@ export async function requestlink(inputUrl: string): Promise<ActionResponse> {
         catch(err) {
 
             if (err instanceof Prisma.PrismaClientKnownRequestError){
-                if (err.code === 'P2002')
-                continue
+                if (err.code === 'P2002') {
+                    continue
+                }
             }
             console.log(`Error generating link: ${err}`)
             return {
