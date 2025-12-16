@@ -1,7 +1,7 @@
 'use server'
 
-import { PrismaClient } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { PrismaClient, Prisma } from "@prisma/client";
+// import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 const prisma = new PrismaClient()
 
@@ -35,7 +35,7 @@ export async function requestlink(inputUrl: string): Promise<ActionResponse> {
         }
         catch(err) {
 
-            if (err instanceof PrismaClientKnownRequestError && err.code === 'P2002'){
+            if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002'){
                 continue
             }
             console.log(`Error generating link: ${err}`)
@@ -70,7 +70,7 @@ export async function get_orig_link(short_code: string): Promise<ActionResponse>
             
         }
         catch (err) {
-            if (!(err instanceof PrismaClientKnownRequestError && err.code === 'P2025')) {
+            if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025')) {
                 retries--
                 continue
             }

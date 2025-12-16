@@ -9,9 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 model Link {
@@ -21,15 +19,4 @@ model Link {
   clicks       Int       @default(0)
   created_at   DateTime  @default(now())
   last_clicked DateTime?
-  user         User?     @relation(fields: [userID], references: [id])
-  userID       String?
-}
-
-model User {
-  id         String   @id @default(uuid())
-  links      Link[]
-  username   String
-  email      String
-  bio        String
-  created_at DateTime @default(now())
 }
