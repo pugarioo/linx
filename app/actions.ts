@@ -1,13 +1,13 @@
 'use server'
 
 import { PrismaClient, Prisma } from "@prisma/client";
-// import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-
 import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg'; // 1. You need to import Pool from 'pg'
 
-const adapter = new PrismaPg({ 
-  connectionString: process.env.DATABASE_URL 
-});
+// 2. Initialize the Pool first, then pass it to the adapter
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 interface ActionResponse {
@@ -38,10 +38,10 @@ export async function requestlink(inputUrl: string): Promise<ActionResponse> {
             }
             
         }
-        catch(err) {
-
+        catch(err) { // 3. Use 'any' here or the safe helper below
+            // Using your helper function is great, but ensure it works with 'unknown'
             if (isPrismaError(err)) {
-                if (err.code === 'P2002') { // TypeScript now knows this is safe!
+                if (err.code === 'P2002') { 
                     continue;
                 }
             }
@@ -76,11 +76,17 @@ export async function get_orig_link(short_code: string): Promise<ActionResponse>
             }
             
         }
-        catch (err) {
-            if (!(isPrismaError(err) && err.code === 'P2025')) {
-                retries--
-                continue
+        catch (err: unknown) { // Explicitly unknown is good practice
+            // 4. Split the check to be safe in strict mode
+            const isPrisma = isPrismaError(err);
+            if (!isPrisma || (isPrisma && err.code !== 'P2025')) {
+                 // Retry if it's NOT a "Not Found" error (P2025)
+                 // OR if it's some other random error
+                 retries--
+                 continue
             }
+            
+            // If we get here, it IS a P2025 error (Link not found)
             return {
                 success: false,
                 error: 'Link does not exist'
@@ -112,6 +118,7 @@ function generate_code () {
     return (Math.random() + 1).toString(36).substring(2, 8)
 }
 
+// 5. Ensure this Type Guard is robust
 function isPrismaError(e: unknown): e is Prisma.PrismaClientKnownRequestError {
   return e instanceof Prisma.PrismaClientKnownRequestError;
 }
