@@ -40,9 +40,9 @@ export async function requestlink(inputUrl: string): Promise<ActionResponse> {
         }
         catch(err) {
 
-            if (err instanceof Prisma.PrismaClientKnownRequestError){
-                if (err.code === 'P2002') {
-                    continue
+            if (isPrismaError(err)) {
+                if (err.code === 'P2002') { // TypeScript now knows this is safe!
+                    continue;
                 }
             }
             console.log(`Error generating link: ${err}`)
@@ -77,8 +77,7 @@ export async function get_orig_link(short_code: string): Promise<ActionResponse>
             
         }
         catch (err) {
-            if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025')) {
-                
+            if (!(isPrismaError(err) && err.code === 'P2025')) {
                 retries--
                 continue
             }
@@ -111,4 +110,8 @@ export async function update_clicks(short_code : string) {
 
 function generate_code () {
     return (Math.random() + 1).toString(36).substring(2, 8)
+}
+
+function isPrismaError(e: unknown): e is Prisma.PrismaClientKnownRequestError {
+  return e instanceof Prisma.PrismaClientKnownRequestError;
 }
