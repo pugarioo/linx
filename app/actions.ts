@@ -12,7 +12,7 @@ interface ActionResponse {
 }
 
 export async function requestlink(inputUrl: string): Promise<ActionResponse> {
-    const pageDomain = process.env.PAGE_DOMAIN || 'http://localhost:3000'
+    const pageDomain = process.env.PAGE_DOMAIN
 
     while (true) {
         const generated_code = generate_code()
